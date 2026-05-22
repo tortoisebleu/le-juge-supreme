@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Juge Suprême</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --mint-main: #bed3ca; --mint-dark: #a8c1b5; --soft-bg: #fcfdfc; --dark-blue: #2c3e50; --box-bg: #f1f7f5; }
+        body { font-family: 'Outfit', sans-serif; background-color: var(--soft-bg); min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 20px; }
+        .app-card { background: #ffffff; border-radius: 4rem; box-shadow: 0 40px 80px rgba(190, 211, 202, 0.25); position: relative; width: 100%; max-width: 400px; padding: 50px 40px; text-align: center; box-sizing: border-box; overflow: hidden; }
+        .flag-line { position: absolute; top: 0; left: 0; right: 0; height: 12px; display: flex; z-index: 10; }
+        .flag-blue { background: #0055A4; flex: 1; }
+        .flag-white { background: white; flex: 1; }
+        .flag-red { background: #EF4135; flex: 1; }
+        h1 { font-size: 2.6rem; font-weight: 900; color: var(--dark-blue); margin: 10px 0 5px; letter-spacing: -1px; }
+        .icons { font-size: 24px; margin-bottom: 35px; display: flex; justify-content: center; gap: 15px; opacity: 0.8; }
+        .drop-zone { background: #ffffff; border: 3px dashed var(--mint-main); border-radius: 3.5rem; padding: 45px 20px; margin-bottom: 30px; cursor: pointer; display: block; }
+        .drop-zone p { margin: 5px 0; color: var(--dark-blue); font-size: 1.1rem; font-weight: 800; }
+        .small-text { font-size: 0.8rem; color: var(--mint-dark); font-style: italic; font-weight: 600; }
+        .btn-mint { background: var(--mint-main); border: none; border-radius: 2.5rem; padding: 22px; width: 100%; font-weight: 900; color: var(--dark-blue); font-size: 1.25rem; text-transform: uppercase; letter-spacing: 1.5px; box-shadow: 0 10px 0px var(--mint-dark); cursor: pointer; margin-bottom: 20px; transition: all 0.2s; }
+        .btn-mint:active { transform: translateY(6px); box-shadow: 0 4px 0px var(--mint-dark); }
+        .btn-group { display: flex; gap: 15px; }
+        .btn-outline { flex: 1; background: white; border: 2px solid var(--mint-main); color: var(--mint-dark); padding: 15px 5px; border-radius: 2rem; font-size: 10px; font-weight: 800; text-transform: uppercase; cursor: pointer; }
+        /* ローディングアニメーション */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes dotBounce {
+            0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+            40% { transform: translateY(-6px); opacity: 1; }
+        }
+        #loadingMsg { margin-top: 25px; display: none; text-align: center; }
+        .loading-icon { font-size: 2rem; display: inline-block; animation: spin 1.2s linear infinite; margin-bottom: 8px; }
+        .loading-dots { display: flex; justify-content: center; align-items: center; gap: 3px; margin-top: 6px; }
+        .loading-dots span { font-size: 10px; font-weight: 900; color: var(--mint-dark); text-transform: uppercase; letter-spacing: 1px; }
+        .loading-dots .dot { width: 6px; height: 6px; background: var(--mint-dark); border-radius: 50%; animation: dotBounce 1.2s ease-in-out infinite; }
+        .loading-dots .dot:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots .dot:nth-child(3) { animation-delay: 0.4s; }
+        #verdictModal { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(255, 255, 255, 0.75); 
+            backdrop-filter: blur(20px); 
+            display: none; 
+            align-items: flex-start;
+            justify-content: center; 
+            z-index: 100; 
+            padding: 40px 20px; 
+            box-sizing: border-box;
+            overflow-y: auto; 
+        }
+        .modal-content { 
+            background: white; 
+            border-radius: 4rem; 
+            padding: 50px 40px; 
+            width: 100%; 
+            max-width: 380px; 
+            box-shadow: 0 30px 100px rgba(0,0,0,0.12); 
+            text-align: center; 
+            box-sizing: border-box; 
+            margin: auto 0; 
+        }
+        .fork-knife { font-size: 55px; margin-bottom: 20px; }
+        .modal-title { font-size: 2.2rem; font-weight: 900; color: var(--dark-blue); margin: 0; }
+        .modal-subtitle { font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.25em; margin-bottom: 35px; }
+        .verdict-line { border-bottom: 1px solid #f0f4f2; padding: 1.2rem 0; display: flex; justify-content: space-between; align-items: center; }
+        .label-gray { color: #94a3b8; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
+        .value-bold { font-weight: 800; font-size: 1.25rem; color: #1a202c; }
+        .calorie-box { background: var(--box-bg); border-radius: 2.5rem; padding: 2rem; margin-top: 1.5rem; text-align: left; }
+        .calorie-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+        .calorie-label { font-size: 0.75rem; font-weight: 800; color: #5a7a6c; text-transform: uppercase; }
+        .calorie-value { font-size: 1.8rem; font-weight: 900; color: var(--dark-blue); position: relative; display: inline-block; padding-right: 2.8rem; }
+        .calorie-value small { font-size: 0.7rem; font-weight: 700; color: #5a7a6c; position: absolute; bottom: 0.1rem; right: 0; }
+        .calorie-desc { font-size: 0.75rem; line-height: 1.5; color: #5a7a6c; font-weight: bold; font-style: italic; }
+        .advice-box { font-style: italic; font-size: 13px; color: #64748b; line-height: 1.6; text-align: center; margin-top: 20px; }
+        .close-btn { background: var(--dark-blue); color: white; border: none; padding: 22px; width: 100%; border-radius: 2.5rem; font-weight: 900; font-size: 1.1rem; cursor: pointer; margin-top: 35px; }
+        #imagePreview img { width: 100%; border-radius: 3.5rem; margin-bottom: 25px; border: 4px solid white; box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="app-card">
+        <div class="flag-line"><div class="flag-blue"></div><div class="flag-white"></div><div class="flag-red"></div></div>
+        <header><h1>Le Juge Suprême</h1><div class="icons">💰 ⚖️ 🥗</div></header>
+        <div id="uploadContainer"><label class="drop-zone" for="receiptInput"><p>Déposez le ticket</p><p class="small-text">Cliquez pour choisir</p><input type="file" id="receiptInput" style="display:none" accept="image/*" onchange="handlePreview(this)"></label></div>
+        <div id="imagePreview" style="display:none"></div>
+        <button onclick="startAnalysis()" id="actionBtn" class="btn-mint">Ouvrir le procès !</button>
+        <div class="btn-group"><button onclick="fetchMonthlyReport(0)" class="btn-outline">Bilan du mois</button><button onclick="fetchMonthlyReport(-1)" class="btn-outline">Mois dernier</button></div>
+        <div id="loadingMsg">
+            <div class="loading-icon">🍴</div>
+            <div class="loading-dots">
+                <span>En cours</span>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+    </div>
+    <div id="verdictModal"><div class="modal-content"><div class="fork-knife">🍴</div><h2 class="modal-title">C'est fait !</h2><div class="modal-subtitle">Calcul terminé</div><div id="verdictData"></div><button onclick="closeModal()" class="close-btn">Fermer</button></div></div>
+    <script>
+        function handlePreview(input) {
+            const preview = document.getElementById('imagePreview');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}">`; preview.style.display = 'block'; document.getElementById('uploadContainer').style.display = 'none'; };
+                reader.readAsDataURL(file);
+            }
+        }
+        function startAnalysis() {
+            const input = document.getElementById('receiptInput');
+            if (!input.files[0]) return;
+            document.getElementById('loadingMsg').style.display = 'block';
+            document.getElementById('actionBtn').disabled = true;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Data = e.target.result.split(',')[1];
+                google.script.run.withSuccessHandler(res => {
+                    try {
+                        const data = JSON.parse(res);
+                        showModal("VERDICT", data.store, data.total, data.calories, data.advice, false);
+                    } catch(err) {
+                        showModal("Erreur", "Données invalides", "-", null, "Le format des données renvoyées par le Juge est incorrect.", true);
+                    }
+                }).withFailureHandler(() => { 
+                    alert("Erreur de connexion avec le Juge."); 
+                    document.getElementById('loadingMsg').style.display = 'none'; 
+                    document.getElementById('actionBtn').disabled = false; 
+                })
+                .processReceipt(base64Data, input.files[0].type);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+        function fetchMonthlyReport(offset) {
+            document.getElementById('loadingMsg').style.display = 'block';
+            google.script.run.withSuccessHandler(res => {
+                try {
+                    const data = JSON.parse(res);
+                    const stars = typeof data.rating === 'number' ? "⭐".repeat(data.rating) : "⚖️";
+                    showMonthlyModal(stars, data.monthLabel || "Mensuel", data.totalCalories || 0, data.advice || "Aucun commentaire.");
+                } catch(err) {
+                    showMonthlyModal("⚠️", "Erreur", null, "Aucune donnée disponible pour cette période dans votre carnet de compte.");
+                }
+            }).withFailureHandler(() => {
+                showMonthlyModal("⚠️", "Erreur", null, "Impossible de se connecter au serveur. Veuillez vérifier si le carnet de compte contient des écritures.");
+            }).analyzeMonthlyReport(offset);
+        }
+        function showModal(title, store, total, calories, advice, isReport) {
+            const display = document.getElementById('verdictData');
+            let html = `<div class="verdict-line"><span class="label-gray">Magasin</span><span class="value-bold">${store}</span></div><div class="verdict-line"><span class="label-gray">${isReport ? 'Période' : 'Total'}</span><span class="value-bold">${total} ${isReport ? '' : '€'}</span></div>`;
+            if (!isReport && calories !== null) {
+                html += `<div class="calorie-box"><div class="calorie-header"><span class="calorie-label">Calories</span><span class="calorie-value">${calories} <small>kcal</small></span></div><p class="calorie-desc">Enregistré ! Les détails sont inscrits dans le carnet avec des couleurs de catégorie.</p></div>`;
+            }
+            html += `<div class="advice-box">"${advice}"</div>`;
+            display.innerHTML = html;
+            document.getElementById('verdictModal').style.display = 'flex';
+            document.getElementById('loadingMsg').style.display = 'none';
+        }
+        // 月次レポート専用モーダル表示関数
+        function showMonthlyModal(stars, period, totalCalories, advice) {
+            const display = document.getElementById('verdictData');
+            const modalTitle = document.querySelector('.modal-title');
+            const modalSubtitle = document.querySelector('.modal-subtitle');
+            modalTitle.textContent = "Bilan !";
+            modalSubtitle.textContent = "Rapport mensuel";
+            let html = '';
+            // 星を上部に大きく表示
+            html += `<div style="font-size:2rem; letter-spacing:4px; margin-bottom:1.2rem;">${stars}</div>`;
+            // 期間
+            html += `<div class="verdict-line"><span class="label-gray">Période</span><span class="value-bold">${period}</span></div>`;
+            // カロリー合計
+            if (totalCalories !== null && totalCalories > 0) {
+                html += `<div class="calorie-box"><div class="calorie-header"><span class="calorie-label">Calories Totales</span><span class="calorie-value">${totalCalories.toLocaleString()} <small>kcal</small></span></div><p class="calorie-desc">Total des calories estimées pour la période sélectionnée.</p></div>`;
+            }
+            // アドバイス
+            html += `<div class="advice-box">"${advice}"</div>`;
+            display.innerHTML = html;
+            document.getElementById('verdictModal').style.display = 'flex';
+            document.getElementById('loadingMsg').style.display = 'none';
+        }
+        function closeModal() {
+            document.getElementById('verdictModal').style.display = 'none';
+            document.getElementById('receiptInput').value = "";
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('uploadContainer').style.display = 'block';
+            document.getElementById('actionBtn').disabled = false;
+            // タイトルをレシート用に戻す
+            document.querySelector('.modal-title').textContent = "C'est fait !";
+            document.querySelector('.modal-subtitle').textContent = "Calcul terminé";
+        }
+    </script>
+</body>
+</html>
