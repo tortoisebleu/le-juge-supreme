@@ -1,6 +1,6 @@
 # Le Juge Suprême 🍴⚖️
 
-レシートを撮影するだけで、食費とカロリーを自動記録するGoogle Apps Scriptアプリです。
+レシートをアップロードするだけで、食費とカロリーを自動記録するGoogle Apps Scriptアプリです。
 
 ## 必要なもの
 - Googleアカウント
